@@ -1,0 +1,2 @@
+# GMXPluginPolylineMeasure
+Плагин измерения углов
