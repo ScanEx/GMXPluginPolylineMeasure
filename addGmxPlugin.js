@@ -38,8 +38,17 @@
 			].map(function(href) {
 				return L.gmxUtil.requestLink(href);
 			})).then(function() {
+				var map = publicInterface.map;
+				var gmxPolylineMeasure = L.Control.PolylineMeasure.extend({
+					_toggleMeasure: function () {
+						L.Control.PolylineMeasure.prototype._toggleMeasure.call(this);
+						map._gmxEventsManager._drawstart = this._measuring;
+					}
+				});
+
                 var controlsManager = publicInterface.map.gmxControlsManager,
-					plm = L.control.polylineMeasure(L.extend({
+					plm = new gmxPolylineMeasure(L.extend({
+					// plm = L.control.polylineMeasure(L.extend({
 						id:'polylineMeasure',
 						className:'polylineMeasure',
 						position:'topleft',
@@ -53,6 +62,15 @@
 					}, publicInterface.params)).addTo(publicInterface.map);
 				L.DomUtil.addClass(plm.getContainer(), plm.options.id);
 				controlsManager.add(plm);
+				if (map.gmxControlsManager) {
+					var drawingControl = map.gmxControlsManager.get('drawing');
+					if (drawingControl) {
+						drawingControl.on('activechange', function () {
+							if (plm._measuring) { plm._toggleMeasure(); }
+						}.bind(this));
+					}
+				}
+
 				publicInterface.addStyleClasses('\
 .polylineMeasure.leaflet-control {\n\
     clear: none;\n\
